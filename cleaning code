@@ -3,7 +3,7 @@ log using "MustIClean", replace
 local NegClean = 0
 local SpecialValuesClean = 0
 local MissingValues "inlist(\`Var', 88, 89, 99, 888, 999, 8888, 9999)"	// these are the error values in your data.
-foreach Var of varlist _all {
+foreach Var of varlist _all { 	// change varlist for this program to run quicker.
 	capture confirm numeric variable `Var', exact 	// Is `Var' numeric? -count- will give an error if not.
 	if !_rc {
 		quietly count if `Var' <= 0 | `MissingValues'
