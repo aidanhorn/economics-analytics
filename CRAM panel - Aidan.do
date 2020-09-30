@@ -33,6 +33,7 @@ merge m:1 pid using "$NIDS\CRAM Wave 2\Link_File_NIDS-CRAM_Wave2_$VersionIN.dta"
 cap drop _merge
 drop nc_pweight
 merge m:1 pid using "$NIDS\CRAM Wave 2\derived_NIDS-CRAM_Wave2_$VersionIN.dta", keepusing(w2_nc_pweight)		// The panel weights were not included in the link file.
+rename w2_nc_pweight nc_pweight
 drop _merge
 
 save CRAM12.dta, replace
