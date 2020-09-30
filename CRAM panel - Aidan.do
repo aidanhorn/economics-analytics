@@ -29,6 +29,8 @@ while `i'<=2 {
 use wave1_merged, clear
 append using wave2_merged
 
+merge m:1 pid using "$NIDS\CRAM Wave 2\Link_File_NIDS-CRAM_Wave2_$VersionIN.dta"
+cap drop _merge
 
 save CRAM12.dta, replace
 
