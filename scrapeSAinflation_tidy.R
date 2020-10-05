@@ -3,6 +3,9 @@
 # Southern Africa Labour and Development Research Unit (SALDRU), University of Cape Town
 # October 2020
 
+# This file can be run on your computer, using the raw URL: https://raw.githubusercontent.com/aidanhorn/tricks/master/scrapeSAinflation_tidy.R
+# It will collect the latest inflation data from StatsSA's website, tidy it, then export it to an Excel file ("CPI.xlsx"), if the Excel file hasn't already been created on your computer. You can thus run this script once a day, using the Task Scheduler, to always have the latest inflation data on your computer.
+
 # setwd()
 
 # Currently loaded external packages
@@ -34,7 +37,16 @@ CPImonth <- paste0(
             sprintf("%02d", .)
     )
 # Not much point to this script if the file already is there. This also prevents needless overwriting to cloud-synced files.
-if (file.exists(paste(CPImonth, "inflation data.xlsx"))) quit()
+if (file.exists("CPI.xlsx")) { 
+    existing_file <- read_xlsx("CPI.xlsx")
+    maxmonth <- max(existing_file$date) %>%
+            sub("-", "", .) %>%
+            substr(1, 6)
+    CPI.file.exists <- function () {
+            if (maxmonth==CPImonth) quit()
+    }
+} else CPI.file.exists <- function() {}
+CPI.file.exists()
 
 CPIfilename <- function () {
     paste0(
@@ -51,7 +63,7 @@ if ( url.exists(CPIfilename())) {} else {
             month(Sys.Date()-68) %>%
                 sprintf("%02d", .)
         )
-    if (file.exists(paste(CPImonth, "inflation data.xlsx"))) quit()
+    CPI.file.exists()
 }
 
 if ( url.exists(CPIfilename())) {} else {
@@ -60,7 +72,7 @@ if ( url.exists(CPIfilename())) {} else {
             month(Sys.Date()-98) %>%
                 sprintf("%02d", .)
         )
-    if (file.exists(paste(CPImonth, "inflation data.xlsx"))) quit()
+    CPI.file.exists()
 }
 
 # If there is an error, please provide a Gmail address to send the error report to. This only works with Gmail.
@@ -89,11 +101,10 @@ if ( url.exists(CPIfilename())) {} else {
 }
 
 
-download.file(CPIfilename(), paste(CPImonth, "inflation data.zip"))
-paste(CPImonth, "inflation data.zip") %>%
-unzip("Excel table from 2008.xls") %>%
-file.rename(paste(CPImonth, "inflation data.html")) # The file is actually a HTML file.
-HTMLtable <- read_html(paste(CPImonth, "inflation data.html")) %>%
+download.file(CPIfilename(), "CPI data.zip")
+unzip("CPI data.zip", "Excel table from 2008.xls") %>%
+file.rename("CPI data.html") # The file is actually a HTML file.
+HTMLtable <- read_html("CPI data.html") %>%
         html_table()
 
 # observe the duplicated rows:
@@ -151,7 +162,7 @@ setColWidths(wb, sheet="Inflation indicies", cols=seq(1, 4), widths=c(15, 5, 5, 
 freezePane(wb, sheet="Inflation indicies", firstRow=T)
 saveWorkbook(
     wb,
-    file=paste(CPImonth, "inflation data.xlsx"),
+    file=paste("CPI.xlsx"),
     overwrite=T
 )
 
