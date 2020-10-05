@@ -1,0 +1,160 @@
+# Programmatically pull the latest CPI data from StatsSA's website.
+# Aidan Horn (hrnaid001@myuct.ac.za)
+# Southern Africa Labour and Development Research Unit (SALDRU), University of Cape Town
+# October 2020
+
+# setwd()
+
+# Currently loaded external packages
+names(sessionInfo()$otherPkgs)
+# List of required external packages
+packages <- c(
+        'RCurl',
+        'rvest',
+        'tidyverse',
+        'lubridate',
+        'readxl',
+        'openxlsx'
+    )
+# Installs packages that need to be installed
+new.packages <- packages[!(packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+# Loads required packages into the library
+invisible(lapply(packages, library, c=T))
+# List of loaded external packages
+names(sessionInfo()$otherPkgs)
+
+# This is where StatsSA stores the CPI data file (as a .zip file)
+partialfilename<-"http://www.statssa.gov.za/timeseriesdata/Excel/P0141%20-%20CPI(COICOP)%20from%20Jan%202008%20("
+
+# String for the month that was 38 days ago.
+CPImonth <- paste0(
+        year(Sys.Date()-38),
+        month(Sys.Date()-38) %>%
+            sprintf("%02d", .)
+    )
+# Not much point to this script if the file already is there. This also prevents needless overwriting to cloud-synced files.
+if (file.exists(paste(CPImonth, "inflation data.xlsx"))) quit()
+
+CPIfilename <- function () {
+    paste0(
+        partialfilename, 
+        CPImonth,
+        ").zip"
+    )
+}
+
+# Is there a CPI file from the month that was 38 days ago? If not, redefine the {CPImonth} string to the previous month.
+if ( url.exists(CPIfilename())) {} else {
+    CPImonth <- paste0(
+            year(Sys.Date()-68),
+            month(Sys.Date()-68) %>%
+                sprintf("%02d", .)
+        )
+    if (file.exists(paste(CPImonth, "inflation data.xlsx"))) quit()
+}
+
+if ( url.exists(CPIfilename())) {} else {
+    CPImonth <- paste0(
+            year(Sys.Date()-98),
+            month(Sys.Date()-98) %>%
+                sprintf("%02d", .)
+        )
+    if (file.exists(paste(CPImonth, "inflation data.xlsx"))) quit()
+}
+
+# If there is an error, please provide a Gmail address to send the error report to. This only works with Gmail.
+if ( url.exists(CPIfilename())) {} else {
+    library("mailR")
+    send.mail(
+        from = "sender@gmail.com",
+        to = c(
+            "your.email@gmail.com"
+        ),
+        subject = "StatsSA's CPI Excel file name has changed",
+        body = paste(
+                "Hi there\n\nStatsSA no longer has its CPI file at",
+                paste0(
+                    partialfilename, 
+                    CPImonth,
+                    ").zip"
+                ),
+                " so the R script cannot pull the CPI data from their website.\n\nThanks,\nAn R bot"
+            ),
+        smtp = list(host.name = "aspmx.l.google.com", port = 25),
+        authenticate = FALSE,
+        send = TRUE
+    )
+    quit()
+}
+
+
+download.file(CPIfilename(), paste(CPImonth, "inflation data.zip"))
+paste(CPImonth, "inflation data.zip") %>%
+unzip("Excel table from 2008.xls") %>%
+file.rename(paste(CPImonth, "inflation data.html")) # The file is actually a HTML file.
+HTMLtable <- read_html(paste(CPImonth, "inflation data.html")) %>%
+        html_table()
+
+# observe the duplicated rows:
+as_tibble(HTMLtable[[1]]) %>% 
+    filter(
+        duplicated(H03) | 
+        duplicated(H03, fromLast=T)     # a hack to get both the duplicated rows
+    ) %>% 
+    select(3:7)
+
+# tidying (mostly transposing)
+CPItable <- as_tibble(HTMLtable[[1]]) %>%
+        select(-H01, -H02, -H14, -H17, -H18, -H25) %>%
+        filter(!duplicated(H03, fromLast=T)) %>%
+        mutate(
+            H04=ifelse(H05!="", H05, H04),
+            H04=ifelse(
+                    !is.na(H06), 
+                    paste(
+                        substr(H04, 1, nchar(H04)-1), # removes the "s" at the end of "deciles"
+                        H06
+                    ), 
+                    H04
+                ),
+            H13=ifelse(H13=="Rural Areas", "Rural areas", H13),
+            H13=ifelse(H13=="North-West", "North West", H13)
+        ) %>%
+        select(-H03, -H05, -H06) %>%
+        pivot_longer(
+            cols=-(1:2), 
+            names_to=c("month", "year"), 
+            names_prefix="MO", 
+            names_sep=2, 
+            values_to="index"
+        ) %>%
+        pivot_wider(
+            names_from=H04,
+            values_from=index
+        ) %>%
+        mutate(
+            date=ymd(paste(year, month, "15", sep="-"))
+        ) %>%
+        rename(Region=H13) %>%
+        relocate(date, .after=year) %>%
+        arrange(Region!="Rural areas") %>%
+        arrange(Region!="Total country") %>%
+        arrange(Region!="All urban areas")
+
+
+# Export data to Excel
+wb <- createWorkbook()
+addWorksheet(wb, sheetName="Inflation indicies")
+writeData(wb, sheet="Inflation indicies", x=CPItable)
+setColWidths(wb, sheet="Inflation indicies", cols=seq(1, 4), widths=c(15, 5, 5, 10))
+freezePane(wb, sheet="Inflation indicies", firstRow=T)
+saveWorkbook(
+    wb,
+    file=paste(CPImonth, "inflation data.xlsx"),
+    overwrite=T
+)
+
+
+
+
