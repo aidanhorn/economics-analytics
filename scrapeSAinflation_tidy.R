@@ -3,8 +3,13 @@
 # Southern Africa Labour and Development Research Unit (SALDRU), University of Cape Town
 # October 2020
 
-# This file can be run on your computer, using the raw URL: https://raw.githubusercontent.com/aidanhorn/tricks/master/scrapeSAinflation_tidy.R
-# It will collect the latest inflation data from StatsSA's website, tidy it, then export it to an Excel file ("CPI.xlsx"), if the Excel file hasn't already been created on your computer. You can thus run this script once a day, using the Task Scheduler, to always have the latest inflation data on your computer.
+# This file can be run on your computer, using the raw URL: source("https://raw.githubusercontent.com/aidanhorn/tricks/master/scrapeSAinflation_tidy.R")
+# It will collect the latest inflation data from StatsSA's website, tidy it, then export it to an Excel file ("CPI.xlsx") and to a .csv file ("CPI.csv"), only if those files aren't up-to-date on your computer. You can thus run this script once a day, using the Task Scheduler, to always have the latest inflation data on your computer.
+
+# Alternatively, you can just use the "CPI.csv" file that I keep updated on my Dropbox storage. Use the following code to import it as a tibble, into your R session:
+# CPI <- read_csv("https://www.dropbox.com/s/nuv21cnr5w4qaz8/CPI.csv?raw=1")
+# The latest inflation index (and base date) can then be integrated into your analyses programatically, if you desire to show numerical values with the most recent known level of prices.
+
 
 # setwd()
 
@@ -162,10 +167,15 @@ setColWidths(wb, sheet="Inflation indicies", cols=seq(1, 4), widths=c(15, 5, 5, 
 freezePane(wb, sheet="Inflation indicies", firstRow=T)
 saveWorkbook(
     wb,
-    file=paste("CPI.xlsx"),
+    file="CPI.xlsx",
     overwrite=T
 )
 
 
-
+# Export to .csv, which can be pulled programatically with: read_csv("https://www.dropbox.com/s/nuv21cnr5w4qaz8/CPI.csv?raw=1")
+write_csv(
+    x=CPItable,
+    path="CPI.csv",
+    na=""
+)
 
