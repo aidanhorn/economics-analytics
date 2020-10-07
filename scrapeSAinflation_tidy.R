@@ -46,9 +46,10 @@ if (file.exists("CPI.xlsx")) {
     existing_file <- read_xlsx("CPI.xlsx")
     maxmonth <- max(existing_file$date) %>%
             sub("-", "", .) %>%
+            sub(" ", "", .) %>%     # just in case the format changes
             substr(1, 6)
     CPI.file.exists <- function () {
-            if (maxmonth==CPImonth) quit()
+            stopifnot(maxmonth!=CPImonth)   # comment this out if you want to overwrite the files.
     }
 } else CPI.file.exists <- function() {}
 CPI.file.exists()
@@ -102,7 +103,7 @@ if ( url.exists(CPIfilename())) {} else {
         authenticate = FALSE,
         send = TRUE
     )
-    quit()
+    stop()
 }
 
 
@@ -135,7 +136,8 @@ CPItable <- as_tibble(HTMLtable[[1]]) %>%
                     H04
                 ),
             H13=ifelse(H13=="Rural Areas", "Rural areas", H13),
-            H13=ifelse(H13=="North-West", "North West", H13)
+            H13=ifelse(H13=="North-West", "North West", H13),
+            H04=ifelse(H04=="Medical products", "Medical Products", H04)
         ) %>%
         select(-H03, -H05, -H06) %>%
         pivot_longer(
@@ -164,7 +166,7 @@ wb <- createWorkbook()
 addWorksheet(wb, sheetName="Inflation indicies")
 writeData(wb, sheet="Inflation indicies", x=CPItable)
 setColWidths(wb, sheet="Inflation indicies", cols=seq(1, 4), widths=c(15, 5, 5, 10))
-freezePane(wb, sheet="Inflation indicies", firstRow=T)
+freezePane(wb, sheet="Inflation indicies", firstActiveRow=2, firstActiveCol=5)
 saveWorkbook(
     wb,
     file="CPI.xlsx",
