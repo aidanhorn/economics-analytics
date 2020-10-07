@@ -8,7 +8,7 @@
 
 # Alternatively, you can just use the "CPI.csv" file that I keep updated on my Dropbox storage. Use the following code to import it as a tibble, into your R session:
 # CPI <- read_csv("https://www.dropbox.com/s/nuv21cnr5w4qaz8/CPI.csv?raw=1")
-# The latest inflation index (and base date) can then be integrated into your analyses programatically, if you desire to show numerical values with the most recent known level of prices.
+# The latest inflation index (and base date) can then be integrated into your analyses programatically, if you desire to show numerical values with the most recent known level of prices. See an example at the bottom of this script.
 
 
 # setwd()
@@ -172,10 +172,24 @@ saveWorkbook(
 )
 
 
-# Export to .csv, which can be pulled programatically with: read_csv("https://www.dropbox.com/s/nuv21cnr5w4qaz8/CPI.csv?raw=1")
+# Export to .csv
 write_csv(
     x=CPItable,
     path="CPI.csv",
     na=""
 )
+
+# The .csv file can now be pulled programmatically. For example:
+CPI <- read_csv("https://www.dropbox.com/s/nuv21cnr5w4qaz8/CPI.csv?raw=1") %>%
+        select(1:5) %>%
+        filter(Region=="All urban areas")
+
+# Headline CPI is the CPI for all urban areas, all items.
+latest.CPI <- setNames(
+        CPI$`All Items`[nrow(CPI)], 
+        paste( 
+            month.name[month(CPI$date[nrow(CPI)])], 
+            year(CPI$date[nrow(CPI)]) 
+        )
+    )
 
