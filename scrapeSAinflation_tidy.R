@@ -114,7 +114,7 @@ HTMLtable <- read_html("CPI data.html") %>%
         html_table()
 
 # observe the duplicated rows:
-as_tibble(HTMLtable[[1]]) %>% 
+as_tibble(HTMLtable[[2]]) %>%     # used to be [[1]], before the heading was put in for the Sept 2020 index.
     filter(
         duplicated(H03) | 
         duplicated(H03, fromLast=T)     # a hack to get both the duplicated rows
@@ -122,7 +122,7 @@ as_tibble(HTMLtable[[1]]) %>%
     select(3:7)
 
 # tidying (mostly transposing)
-CPItable <- as_tibble(HTMLtable[[1]]) %>%
+CPItable <- as_tibble(HTMLtable[[2]]) %>%    # was [[1]] previously
         select(-H01, -H02, -H14, -H17, -H18, -H25) %>%
         filter(!duplicated(H03, fromLast=T)) %>%
         mutate(
