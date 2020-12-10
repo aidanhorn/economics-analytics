@@ -1,17 +1,18 @@
 # Programmatically pull the latest CPI data from StatsSA's website.
 # Aidan Horn (hrnaid001@myuct.ac.za)
 # Southern Africa Labour and Development Research Unit (SALDRU), University of Cape Town
-# October 2020
+# Oct-Dec 2020
 
-# This file can be run on your computer, using the raw URL: source("https://raw.githubusercontent.com/aidanhorn/tricks/master/scrapeSAinflation_tidy.R")
+# setwd()
+# myemail <- "your.email@gmail.com"
+
+# This file can be run on your computer, using the raw URL: source("https://raw.githubusercontent.com/aidanhorn/tricks/master/scrapeSAinflation_tidy.R") , AFTER setting the working directory, as above.
 # It will collect the latest inflation data from StatsSA's website, tidy it, then export it to an Excel file ("CPI.xlsx") and to a .csv file ("CPI.csv"), only if those files aren't up-to-date on your computer. You can thus run this script once a day, using the Task Scheduler, to always have the latest inflation data on your computer.
 
 # Alternatively, you can just use the "CPI.csv" file that I keep updated on my Dropbox storage. Use the following code to import it as a tibble, into your R session:
 # CPI <- read_csv("https://www.dropbox.com/s/nuv21cnr5w4qaz8/CPI.csv?raw=1")
 # The latest inflation index (and base date) can then be integrated into your analyses programatically, if you desire to show numerical values with the most recent known level of prices. See an example at the bottom of this script.
 
-
-# setwd()
 
 # Currently loaded external packages
 names(sessionInfo()$otherPkgs)
@@ -86,9 +87,7 @@ if ( url.exists(CPIfilename())) {} else {
     library("mailR")
     send.mail(
         from = "sender@gmail.com",
-        to = c(
-            "your.email@gmail.com"
-        ),
+        to = myemail,	# myemail is a character vector of Gmail addresses you want this error report to be sent to.
         subject = "StatsSA's CPI Excel file name has changed",
         body = paste(
                 "Hi there\n\nStatsSA no longer has its CPI file at",
@@ -108,7 +107,7 @@ if ( url.exists(CPIfilename())) {} else {
 
 
 download.file(CPIfilename(), "CPI data.zip")
-unzip("CPI data.zip", "Excel table from 2008.xls") %>%
+unzip("CPI data.zip", "Excel - CPI (COICOP) from Jan 2008.xls") %>%  # "Excel table from 2008.xls") %>%
 file.rename("CPI data.html") # The file is actually a HTML file.
 HTMLtable <- read_html("CPI data.html") %>%
         html_table()
