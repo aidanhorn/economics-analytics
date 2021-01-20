@@ -88,7 +88,7 @@ if ( url.exists(CPIfilename())) {} else {
     send.mail(
         from = "sender@gmail.com",
         to = myemail,	# myemail is a character vector of Gmail addresses you want this error report to be sent to.
-        subject = "StatsSA's CPI Excel file name has changed",
+        subject = "StatsSA's CPI zip file name has changed",
         body = paste(
                 "Hi there\n\nStatsSA no longer has its CPI file at",
                 paste0(
@@ -107,7 +107,7 @@ if ( url.exists(CPIfilename())) {} else {
 
 
 download.file(CPIfilename(), "CPI data.zip")
-unzip("CPI data.zip", "Excel - CPI (COICOP) from Jan 2008.xls") %>%  # "Excel table from 2008.xls") %>%
+unzip("CPI data.zip", "Excel table from 2008.xls") %>%  # "Excel - CPI (COICOP) from Jan 2008.xls") %>%
 file.rename("CPI data.html") # The file is actually a HTML file.
 HTMLtable <- read_html("CPI data.html") %>%
         html_table()
