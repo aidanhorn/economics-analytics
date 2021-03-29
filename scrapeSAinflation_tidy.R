@@ -107,15 +107,15 @@ if ( url.exists(CPIfilename())) {} else {
 
 
 download.file(CPIfilename(), "CPI data.zip")
-unzip("CPI data.zip", "Excel table from 2008.xls") # chain this when the files becomes .html again. %>%  # "Excel - CPI (COICOP) from Jan 2008.xls") %>%
-# February 2021: the file is now a .xls file.  #  file.rename("CPI data.html") # The file is actually a HTML file.
-# HTMLtable <- read_html("CPI data.html") %>%
-#        html_table()
-XLStable <- read_xls("Excel table from 2008.xls")
+unzip("CPI data.zip", "Excel table from 2008.xls") %>%  # "Excel - CPI (COICOP) from Jan 2008.xls") %>%
+file.rename("CPI data.html") # The file is actually a HTML file.
+HTMLtable <- read_html("CPI data.html") %>%
+   html_table()
+# XLStable <- read_xls("Excel table from 2008.xls")
 
 # observe the duplicated rows:
-# as_tibble(HTMLtable[[1]]) %>%     # used to be [[1]], before the heading was put in for the Sept 2020 index.
-XLStable %>%
+as_tibble(HTMLtable[[1]]) %>%     # used to be [[1]], before the heading was put in for the Sept 2020 index.
+# XLStable %>%
     filter(
         duplicated(H03) | 
         duplicated(H03, fromLast=T)     # a hack to get both the duplicated rows
@@ -123,12 +123,12 @@ XLStable %>%
     select(3:7)
 
 # tidying (mostly transposing)
-# CPItable <- as_tibble(HTMLtable[[1]]) %>%    # was [[1]] previously
-CPItable <- XLStable %>%
+CPItable <- as_tibble(HTMLtable[[1]]) %>%    # was [[1]] previously
+# CPItable <- XLStable %>%
         select(-H01, -H02, -H14, -H17, -H18, -H25) %>%
         filter(!duplicated(H03, fromLast=T)) %>%
         mutate(
-            H04=ifelse(!is.na(H05), H05, H04),
+            H04=ifelse(H05!="", H05, H04),
             H04=ifelse(
                     !is.na(H06), 
                     paste(
@@ -142,9 +142,6 @@ CPItable <- XLStable %>%
             H04=ifelse(H04=="Medical products", "Medical Products", H04)
         ) %>%
         select(-H03, -H05, -H06) %>%
-        mutate(   # This should not be necessary in future.
-           MO012021=as.numeric(MO012021)
-        ) %>%
         pivot_longer(
             cols=-(1:2), 
             names_to=c("month", "year"), 
