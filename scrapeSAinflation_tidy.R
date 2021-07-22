@@ -107,7 +107,7 @@ if ( url.exists(CPIfilename())) {} else {
 
 
 download.file(CPIfilename(), "CPI data.zip")
-unzip("CPI data.zip", "Excel - CPI (COICOP) from January 2008 (202105).xls") %>% # "Excel table from 2008.xls") %>%  # "Excel - CPI (COICOP) from Jan 2008.xls") %>%
+unzip("CPI data.zip", paste0("Excel - CPI (COICOP) from January 2008 (", CPImonth, ").xls")) %>% # "Excel table from 2008.xls") %>%  # "Excel - CPI (COICOP) from Jan 2008.xls") %>%
 file.rename("CPI data.html") # The file is actually a HTML file.
 HTMLtable <- read_html("CPI data.html") %>%
    html_table()
