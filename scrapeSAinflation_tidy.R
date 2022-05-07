@@ -10,7 +10,7 @@
 # It will collect the latest inflation data from StatsSA's website, tidy it, then export it to an Excel file ("CPI.xlsx") and to a .csv file ("CPI.csv"), only if those files aren't up-to-date on your computer. You can thus run this script once a day, using the Task Scheduler, to always have the latest inflation data on your computer.
 
 # Alternatively, you can just use the "CPI.csv" file that I keep updated on my Dropbox storage. Use the following code to import it as a tibble, into your R session:
-# CPI <- read_csv("https://www.dropbox.com/s/nuv21cnr5w4qaz8/CPI.csv?raw=1")
+# CPI <- read_csv("http://csv.cpi.aidanhorn.co.za")
 # The latest inflation index (and base date) can then be integrated into your analyses programatically, if you desire to show numerical values with the most recent known level of prices. See an example at the bottom of this script.
 
 
@@ -107,14 +107,15 @@ if ( url.exists(CPIfilename())) {} else {
 
 
 download.file(CPIfilename(), "CPI data.zip")
-unzip("CPI data.zip", paste0("Excel - CPI (COICOP) from January 2008 (", CPImonth, ").xls")) %>% # "Excel table from 2008.xls") %>%  # "Excel - CPI (COICOP) from Jan 2008.xls") %>%
-file.rename("CPI data.html") # The file is actually a HTML file.
-HTMLtable <- read_html("CPI data.html") %>%
-   html_table()
-# XLStable <- read_xls("Excel table from 2008.xls")
+   unzip("CPI data.zip", paste0("Excel - CPI (COICOP) from January 2008 (", CPImonth, ").xlsx")) %>% # "Excel table from 2008.xls") %>%  # "Excel - CPI (COICOP) from Jan 2008.xls") %>%
+   file.rename("CPI data.xlsx") # The file used to be an HTML file.
+
+# HTMLtable <- read_html("CPI data.html") %>%
+#   html_table()
+XLSXtable <- read_xlsx("CPI data.xlsx")
 
 # observe the duplicated rows:
-as_tibble(HTMLtable[[1]]) %>%     # used to be [[1]], before the heading was put in for the Sept 2020 index.
+XLSXtable %>%     # as_tibble(HTMLtable[[1]])
 # XLStable %>%
     filter(
         duplicated(H03) | 
@@ -122,13 +123,13 @@ as_tibble(HTMLtable[[1]]) %>%     # used to be [[1]], before the heading was put
     ) %>% 
     select(3:7)
 
-# tidying (mostly transposing)
-CPItable <- as_tibble(HTMLtable[[1]]) %>%    # was [[1]] previously
-# CPItable <- XLStable %>%
+# tidying (mostly transposing)☺
+# CPItable <- as_tibble(HTMLtable[[1]]) %>%
+CPItable <- XLSXtable %>%
         select(-H01, -H02, -H14, -H17, -H18, -H25) %>%
         filter(!duplicated(H03, fromLast=T)) %>%
         mutate(
-            H04=ifelse(H05!="", H05, H04),
+            H04=ifelse(!is.na(H05), H05, H04),
             H04=ifelse(
                     !is.na(H06), 
                     paste(
@@ -139,7 +140,10 @@ CPItable <- as_tibble(HTMLtable[[1]]) %>%    # was [[1]] previously
                 ),
             H13=ifelse(H13=="Rural Areas", "Rural areas", H13),
             H13=ifelse(H13=="North-West", "North West", H13),
-            H04=ifelse(H04=="Medical products", "Medical Products", H04)
+            H13=ifelse(H13=="Kwazulu-Natal", "KwaZulu-Natal", H13),
+            H04=ifelse(H04=="Medical products", "Medical Products", H04),
+            H04=ifelse(H04=="CPI for pensioners", "Pensioners", H04),
+            H04=ifelse(H04=="Fuel", "Petrol", H04)
         ) %>%
         select(-H03, -H05, -H06) %>%
         pivot_longer(
@@ -184,7 +188,7 @@ write_csv(
 )
 
 # The .csv file can now be pulled programmatically. For example:
-CPI <- read_csv("https://www.dropbox.com/s/nuv21cnr5w4qaz8/CPI.csv?raw=1") %>%
+CPI <- read_csv("http://csv.cpi.aidanhorn.co.za") %>%
         select(1:5) %>%
         filter(Region=="All urban areas")
 
