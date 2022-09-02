@@ -105,11 +105,13 @@ if ( url.exists(CPIfilename())) {} else {
     stop()
 }
 
-
 download.file(CPIfilename(), "CPI data.zip")
-   unzip("CPI data.zip", paste0("Excel - CPI (COICOP) from January 2008 (", CPImonth, ").xlsx")) %>% # "Excel table from 2008.xls") %>%  # "Excel - CPI (COICOP) from Jan 2008.xls") %>%
+try({
+   unzip("CPI data.zip", paste0("Excel - CPI(COICOP) from January 2008 (", CPImonth, ").xlsx")) %>% # "Excel table from 2008.xls") %>%  # "Excel - CPI (COICOP) from Jan 2008.xls") %>%
+   # paste0("Excel - CPI (COICOP) from January 2008 (", CPImonth, ").xlsx") %>%  # 2022-09-02: (with a space between "CPI" and "(COICOP)")
    file.rename("CPI data.xlsx") # The file used to be an HTML file.
-
+})
+      
 # HTMLtable <- read_html("CPI data.html") %>%
 #   html_table()
 XLSXtable <- read_xlsx("CPI data.xlsx")
@@ -123,10 +125,10 @@ XLSXtable %>%     # as_tibble(HTMLtable[[1]])
     ) %>% 
     select(3:7)
 
-# tidying (mostly transposing)☺
+# tidying (mostly transposing)???
 # CPItable <- as_tibble(HTMLtable[[1]]) %>%
 CPItable <- XLSXtable %>%
-        select(-H01, -H02, -H14, -H17, -H18, -H25) %>%
+        select(-H01, -H02, -H17, -H18, -H24, -H25) %>%  # , -H14  # 2022-09-02: added in -H24.
         filter(!duplicated(H03, fromLast=T)) %>%
         mutate(
             H04=ifelse(!is.na(H05), H05, H04),
@@ -182,9 +184,9 @@ saveWorkbook(
 
 # Export to .csv
 write_csv(
-    x=CPItable,
-    path="CPI.csv",
-    na=""
+    x = CPItable,
+    file = "CPI.csv",
+    na = ""
 )
 
 # The .csv file can now be pulled programmatically. For example:
