@@ -107,7 +107,7 @@ if ( url.exists(CPIfilename())) {} else {
 
 download.file(CPIfilename(), "CPI data.zip")
 try({
-   unzip("CPI data.zip", paste0("Excel - CPI(COICOP) from January 2008 (", CPImonth, ").xlsx")) %>% # "Excel table from 2008.xls") %>%  # "Excel - CPI (COICOP) from Jan 2008.xls") %>%
+   unzip("CPI data.zip", "Excel table from 2008.xlsx") %>% # paste0("Excel - CPI(COICOP) from January 2008 (", CPImonth, ").xlsx")) # "Excel - CPI (COICOP) from Jan 2008.xls") %>%
    # paste0("Excel - CPI (COICOP) from January 2008 (", CPImonth, ").xlsx") %>%  # 2022-09-02: (with a space between "CPI" and "(COICOP)")
    file.rename("CPI data.xlsx") # The file used to be an HTML file.
 })
@@ -125,7 +125,7 @@ XLSXtable %>%     # as_tibble(HTMLtable[[1]])
     ) %>% 
     select(3:7)
 
-# tidying (mostly transposing)???
+# tidying (mostly transposing)
 # CPItable <- as_tibble(HTMLtable[[1]]) %>%
 CPItable <- XLSXtable %>%
         select(-H01, -H02, -H17, -H18, -H24, -H25) %>%  # , -H14  # 2022-09-02: added in -H24.
