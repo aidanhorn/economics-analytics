@@ -106,15 +106,45 @@ if ( url.exists(CPIfilename())) {} else {
 }
 
 download.file(CPIfilename(), "CPI data.zip")
+# The file used to be an HTML file.
+# https://stackoverflow.com/a/3903237/4585384
 try({
-   unzip("CPI data.zip", paste0("Excel - CPI(COICOP) from January 2008 (", CPImonth, ").xlsx")) %>% # "Excel table from 2008.xlsx") %>%  # "Excel - CPI (COICOP) from Jan 2008.xls") %>%
-   # paste0("Excel - CPI (COICOP) from January 2008 (", CPImonth, ").xlsx") %>%  # 2022-09-02: (with a space between "CPI" and "(COICOP)")
-   file.rename("CPI data.xlsx") # The file used to be an HTML file.
+    assign("last.warning", NULL, envir = baseenv())
+    unzip("CPI data.zip", paste0("Excel - CPI(COICOP) from January 2008 (", CPImonth, ").xlsx")) %>%
+    file.rename("CPI data.xlsx")
+    if(length(warnings())==0) XLSXtable <- read_excel("CPI data.xlsx")
 })
-      
+try({
+    assign("last.warning", NULL, envir = baseenv())
+    unzip(
+        "CPI data.zip", 
+        # 2022-09-02: (with a space between "CPI" and "(COICOP)")
+        paste0("Excel - CPI (COICOP) from January 2008 (", CPImonth, ").xlsx")
+    ) %>%
+    file.rename("CPI data.xlsx")
+    if(length(warnings())==0) XLSXtable <- read_excel("CPI data.xlsx")
+})
+try({
+    assign("last.warning", NULL, envir = baseenv())
+    unzip("CPI data.zip", paste0("Excel - CPI(COICOP) from January 2008 (", CPImonth, ").xls")) %>%
+    file.rename("CPI data.xls")
+    if(length(warnings())==0) XLSXtable <- read_excel("CPI data.xls")
+})
+try({
+    assign("last.warning", NULL, envir = baseenv())
+    unzip("CPI data.zip", "Excel table from 2008.xlsx") %>%
+    file.rename("CPI data.xlsx")
+    if(length(warnings())==0) XLSXtable <- read_excel("CPI data.xlsx")
+})
+try({
+    assign("last.warning", NULL, envir = baseenv())
+    unzip("CPI data.zip", "Excel - CPI (COICOP) from Jan 2008.xls") %>%
+    file.rename("CPI data.xls")
+    if(length(warnings())==0) XLSXtable <- read_excel("CPI data.xls")
+})
+
 # HTMLtable <- read_html("CPI data.html") %>%
 #   html_table()
-XLSXtable <- read_xlsx("CPI data.xlsx")
 
 # observe the duplicated rows:
 XLSXtable %>%     # as_tibble(HTMLtable[[1]])
