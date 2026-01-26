@@ -50,7 +50,7 @@ if (is.null(old_pkgs_matrix)) {
   # Priority: 
   # 1. Major updates first (Descending)
   # 2. Most popular packages second (Descending count)
-  df_final <- df_final[order(df_final$Type, df_final$count, decreasing = c(FALSE, TRUE)), ]
+  df_final <- df_final[order(df_final$Type, -df_final$count), ]
   
   # Cleanup columns for the final view
   final_view <- df_final[, c("Package", "Type", "Installed", "ReposVer", "count")]
