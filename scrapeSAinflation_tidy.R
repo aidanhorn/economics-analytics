@@ -109,6 +109,8 @@ try({
   file.rename(list.files(pattern="Excel.*.xlsx"), "CPI data.xlsx")
 })
 
+XLSXtable <- read_excel("CPI data.xlsx")
+
 # observe the duplicated rows:
 XLSXtable %>%     # as_tibble(HTMLtable[[1]])
 # XLStable %>%
