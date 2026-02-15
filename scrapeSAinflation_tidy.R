@@ -1,12 +1,10 @@
 # Programmatically pull the latest CPI data from StatsSA's website.
-# Aidan Horn (hrnaid001@myuct.ac.za)
-# Southern Africa Labour and Development Research Unit (SALDRU), University of Cape Town
-# Oct-Dec 2020
+# Aidan Horn <aidan@econometrics.co.za>
 
 # setwd()
 # myemail <- "your.email@gmail.com"
 
-# This file can be run on your computer, using the raw URL: source("https://raw.githubusercontent.com/aidanhorn/tricks/master/scrapeSAinflation_tidy.R") , AFTER setting the working directory, as above.
+# This file can be run on your computer, using the raw URL: source("https://raw.githubusercontent.com/aidanhorn/economics-analytics/master/scrapeSAinflation_tidy.R") , AFTER setting the working directory, as above.
 # It will collect the latest inflation data from StatsSA's website, tidy it, then export it to an Excel file ("CPI.xlsx") and to a .csv file ("CPI.csv"), only if those files aren't up-to-date on your computer. You can thus run this script once a day, using the Task Scheduler, to always have the latest inflation data on your computer.
 
 # Alternatively, you can just use the "CPI.csv" file that I keep updated on my Dropbox storage. Use the following code to import it as a tibble, into your R session:
@@ -106,45 +104,10 @@ if ( url.exists(CPIfilename())) {} else {
 }
 
 download.file(CPIfilename(), "CPI data.zip")
-# The file used to be an HTML file.
-# https://stackoverflow.com/a/3903237/4585384
 try({
-    assign("last.warning", NULL, envir = baseenv())
-    unzip("CPI data.zip", paste0("Excel - CPI(COICOP) from January 2008 (", CPImonth, ").xlsx")) %>%
-    file.rename("CPI data.xlsx")
-    if(length(warnings())==0) XLSXtable <- read_excel("CPI data.xlsx")
+  unzip("CPI data.zip")
+  file.rename(list.files(pattern="Excel.*.xlsx"), "CPI data.xlsx")
 })
-try({
-    assign("last.warning", NULL, envir = baseenv())
-    unzip(
-        "CPI data.zip", 
-        # 2022-09-02: (with a space between "CPI" and "(COICOP)")
-        paste0("Excel - CPI (COICOP) from January 2008 (", CPImonth, ").xlsx")
-    ) %>%
-    file.rename("CPI data.xlsx")
-    if(length(warnings())==0) XLSXtable <- read_excel("CPI data.xlsx")
-})
-try({
-    assign("last.warning", NULL, envir = baseenv())
-    unzip("CPI data.zip", paste0("Excel - CPI(COICOP) from January 2008 (", CPImonth, ").xls")) %>%
-    file.rename("CPI data.xls")
-    if(length(warnings())==0) XLSXtable <- read_excel("CPI data.xls")
-})
-try({
-    assign("last.warning", NULL, envir = baseenv())
-    unzip("CPI data.zip", "Excel table from 2008.xlsx") %>%
-    file.rename("CPI data.xlsx")
-    if(length(warnings())==0) XLSXtable <- read_excel("CPI data.xlsx")
-})
-try({
-    assign("last.warning", NULL, envir = baseenv())
-    unzip("CPI data.zip", "Excel - CPI (COICOP) from Jan 2008.xls") %>%
-    file.rename("CPI data.xls")
-    if(length(warnings())==0) XLSXtable <- read_excel("CPI data.xls")
-})
-
-# HTMLtable <- read_html("CPI data.html") %>%
-#   html_table()
 
 # observe the duplicated rows:
 XLSXtable %>%     # as_tibble(HTMLtable[[1]])
@@ -232,4 +195,3 @@ latest.CPI <- setNames(
             year(CPI$date[nrow(CPI)]) 
         )
     )
-
