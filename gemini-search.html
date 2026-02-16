@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Search</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            line-height: 1.6;
+        }
+        #container {
+            max-width: 800px;
+            width: 100%;
+            padding: 40px 20px;
+        }
+        #query-display {
+            font-size: 1.2rem;
+            color: #888;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+        #result {
+            font-size: 1.1rem;
+            min-height: 200px;
+        }
+        /* Loading Animation */
+        .loading {
+            color: #888;
+            font-style: italic;
+        }
+        /* Markdown Styles */
+        pre { background: #1e1e1e; padding: 15px; border-radius: 8px; overflow-x: auto; }
+        code { font-family: 'Consolas', 'Monaco', monospace; background: #2d2d2d; padding: 2px 5px; border-radius: 4px; }
+        pre code { background: none; padding: 0; }
+        a { color: #8ab4f8; }
+    </style>
+</head>
+<body>
+
+<div id="container">
+    <div id="query-display"></div>
+    <div id="result"><div class="loading">Thinking...</div></div>
+</div>
+
+<script src="gemini-config.js"></script>
+<script>
+    // --- CONFIGURATION ---
+    // API KEY is now loaded from gemini-config.js
+    let API_KEY = "";
+    if (typeof CONFIG !== 'undefined' && CONFIG.API_KEY) {
+        API_KEY = CONFIG.API_KEY;
+    }
+    // ---------------------
+
+    async function run() {
+        // 1. Get the query from the URL (Vivaldi passes it as ?q=...)
+        const urlObj = new URL(window.location.href);
+        const urlParams = urlObj.searchParams;
+        let query = urlParams.get('q');
+        
+        // Fallback: Check hash if query string is empty (e.g., #q=...)
+        if (!query && urlObj.hash) {
+            const hashParams = new URLSearchParams(urlObj.hash.substring(1)); // Remove '#'
+            query = hashParams.get('q');
+        }
+
+        const displayDiv = document.getElementById('query-display');
+        const resultDiv = document.getElementById('result');
+
+        if (!query) {
+            displayDiv.innerText = "Ready.";
+            const currentUrl = window.location.href.split('?')[0].split('#')[0];
+            resultDiv.innerHTML = `
+                <p>Type in your address bar: <b>f your question</b></p>
+                <p style="font-size: 0.9rem; color: #666; margin-top: 10px; border-top: 1px solid #333; padding-top: 10px;">
+                    <b>Setup Instructions:</b><br>
+                    1. Go to your browser's Search Engine settings.<br>
+                    2. Add a new search engine.<br>
+                    3. Set the Keyword to <code>f</code>.<br>
+                    4. Set the URL to:<br>
+                    <code style="word-break: break-all;">${currentUrl}?q=%s</code>
+                </p>
+            `;
+            return;
+        }
+
+        displayDiv.innerText = `Q: ${query}`;
+
+        // 2. Prepare the API Request
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+        
+        const payload = {
+            contents: [{
+                parts: [{ text: query }]
+            }]
+        };
+
+        try {
+            // 3. Call Gemini
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            // 4. Parse and Display
+            if (data.candidates && data.candidates[0].content) {
+                const markdownText = data.candidates[0].content.parts[0].text;
+                // Convert Markdown to HTML using marked.js
+                resultDiv.innerHTML = marked.parse(markdownText);
+            } else {
+                console.error("API Error:", data);
+                resultDiv.innerText = "Error: Could not get a response. Check your API Key or Console (F12) for details.";
+            }
+
+        } catch (error) {
+            console.error(error);
+            resultDiv.innerText = "Network Error: " + error.message;
+        }
+    }
+
+    // Run immediately when page loads
+    run();
+</script>
+
+</body>
+</html>
