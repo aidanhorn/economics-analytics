@@ -6,8 +6,8 @@ library(dplyr)
 if (!require("cranlogs", quietly = TRUE)) {
   message("Installing 'cranlogs' to fetch package popularity data...")
   install.packages("cranlogs")
-  library(cranlogs)
 }
+library(cranlogs)
 
 # 2. Get the list of outdated packages
 message("Checking for outdated packages...")
