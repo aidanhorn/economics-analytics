@@ -1,7 +1,5 @@
 # Update R packages
 
-library(dplyr)
-
 # 1. Prerequisite: Install cranlogs if you don't have it
 if (!require("cranlogs", quietly = TRUE)) {
   message("Installing 'cranlogs' to fetch package popularity data...")
@@ -64,6 +62,6 @@ if (is.null(old_pkgs_matrix)) {
   print(head(final_view, 15))
 
   # 7. Update the major updates
-  major_packages <- final_view |> filter(Type == "MAJOR") |> pull(Package)
+  major_packages <- final_view |> dplyr::filter(Type == "MAJOR") |> pull(Package)
   install.packages(major_packages)
 }
