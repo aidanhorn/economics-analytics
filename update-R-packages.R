@@ -62,6 +62,6 @@ if (is.null(old_pkgs_matrix)) {
   print(head(final_view, 15))
 
   # 7. Update the major updates
-  major_packages <- final_view |> dplyr::filter(Type == "MAJOR") |> pull(Package)
+  major_packages <- final_view |> dplyr::filter(Type == "MAJOR") |> dplyr::pull(Package)
   install.packages(major_packages)
 }
