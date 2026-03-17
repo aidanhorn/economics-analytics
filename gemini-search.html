@@ -62,15 +62,13 @@
     // ---------------------
 
     async function run() {
-        // 1. Get the query from the URL (Vivaldi passes it as ?q=...)
-        const urlObj = new URL(window.location.href);
-        const urlParams = urlObj.searchParams;
-        let query = urlParams.get('q');
-        
-        // Fallback: Check hash if query string is empty (e.g., #q=...)
-        if (!query && urlObj.hash) {
-            const hashParams = new URLSearchParams(urlObj.hash.substring(1)); // Remove '#'
-            query = hashParams.get('q');
+        // 1. Get the query from the URL Hash (Vivaldi passes it as #q=...)
+        let query = "";
+        const hash = window.location.hash;
+
+        if (hash.startsWith("#q=")) {
+            // Remove '#q=' and decode the text (handling Vivaldi's '+' for spaces)
+            query = decodeURIComponent(hash.substring(3).replace(/\+/g, '%20'));
         }
 
         const displayDiv = document.getElementById('query-display');
@@ -87,7 +85,7 @@
                     2. Add a new search engine.<br>
                     3. Set the Keyword to <code>f</code>.<br>
                     4. Set the URL to:<br>
-                    <code style="word-break: break-all;">${currentUrl}?q=%s</code>
+                    <code style="word-break: break-all;">${currentUrl}#q=%s</code>
                 </p>
             `;
             return;
